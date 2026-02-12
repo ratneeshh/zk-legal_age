@@ -2,10 +2,8 @@ pragma circom 2.2.3;
 
 include "circomlib/circuits/comparators.circom";
 
+template LegalAge() {
 
-template CalculateAge() {
-
-    // Inputs
     signal input bDate;
     signal input bMonth;
     signal input bYear;
@@ -14,33 +12,39 @@ template CalculateAge() {
     signal input cMonth;
     signal input cYear;
 
-    signal output age;
+    signal output isAbove18;
 
-    // Year difference
     signal diffYear;
     diffYear <== cYear - bYear;
 
-    // Check if current month < birth month
     component monthLess = LessThan(8);
     monthLess.in[0] <== cMonth;
     monthLess.in[1] <== bMonth;
 
-    // Check if months are equal
     component monthEqual = IsEqual();
     monthEqual.in[0] <== cMonth;
     monthEqual.in[1] <== bMonth;
 
-    // Check if current date < birth date
     component dateLess = LessThan(8);
     dateLess.in[0] <== cDate;
     dateLess.in[1] <== bDate;
 
-    // If month < OR (month == AND date <)
     signal shouldReduce;
     shouldReduce <== monthLess.out + (monthEqual.out * dateLess.out);
 
-    // Final age
+    signal age;
     age <== diffYear - shouldReduce;
+
+    component lt18 = LessThan(8);
+    lt18.in[0] <== age;
+    lt18.in[1] <== 18;
+
+    signal isMinor;
+    isMinor <== lt18.out;
+
+    isAbove18 <== 1 - isMinor;
+
+    isAbove18 === 1;
 }
 
-component main = CalculateAge();
+component main = LegalAge();
